@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
+using Unity.AI.Navigation;
 
 // Builds the whole maze game automatically.
 // Usage: add this to an empty GameObject and press Play. Everything else is automatic:
-// floor, walls, exit portal, player and camera.
+// floor, walls, exit portal, enemies, player and camera.
 public class MazeGenerator : MonoBehaviour
 {
     public enum CameraMode { TopDown, FollowBehind }
@@ -18,10 +20,12 @@ public class MazeGenerator : MonoBehaviour
 
     [Header("Gameplay")]
     public Transform player;            // if empty, found in the scene or created automatically
+    public bool spawnEnemies = true;
+    public int enemyCount = 3;          // each one patrols a different region of the maze
     public bool hideOldFloor = true;    // deactivates the old "Plane" object in the scene
 
     bool[,] wall;                       // true = wall, false = corridor
-    Material wallMat, floorMat, exitMat;
+    Material wallMat, floorMat, exitMat, enemyMat;
     System.Random rnd = new System.Random();
 
     void Start()
@@ -42,8 +46,9 @@ public class MazeGenerator : MonoBehaviour
 
         CarveMaze();
         BuildGeometry();
+        BakeNavMesh();          // so enemies can find their way around the maze
         PlaceExit();
-        PlacePlayer();
+        PlaceCharacters();
 
         if (hideOldFloor)
         {
@@ -169,6 +174,13 @@ public class MazeGenerator : MonoBehaviour
                 }
     }
 
+    void BakeNavMesh()
+    {
+        var surface = gameObject.AddComponent<NavMeshSurface>();
+        surface.collectObjects = CollectObjects.Children;
+        surface.BuildNavMesh();
+    }
+
     // Exit portal in the far corner of the maze
     void PlaceExit()
     {
@@ -217,17 +229,82 @@ public class MazeGenerator : MonoBehaviour
         return p.transform;
     }
 
-    void PlacePlayer()
+    void PlaceCharacters()
     {
-        if (player == null) return;
-
-        player.position = CellPos(1, 1, 1f);
-        var rb = player.GetComponent<Rigidbody>();
-        if (rb != null)
+        if (player != null)
         {
-            rb.position = player.position;
-            rb.linearVelocity = Vector3.zero;
+            player.position = CellPos(1, 1, 1f);
+            var rb = player.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                rb.position = player.position;
+                rb.linearVelocity = Vector3.zero;
+            }
         }
+
+        if (spawnEnemies && player != null)
+        {
+            var regions = PatrolRegions();
+            for (int i = 0; i < enemyCount && regions.Count > 0; i++)
+                SpawnEnemy(regions[i % regions.Count], i + 1);
+        }
+    }
+
+    // Splits the maze into quadrants; every quadrant except the player's
+    // starting corner becomes a patrol region of corridor cells
+    List<List<Vector2Int>> PatrolRegions()
+    {
+        int half = size / 2;
+        var regions = new List<List<Vector2Int>> { new List<Vector2Int>(), new List<Vector2Int>(), new List<Vector2Int>() };
+
+        for (int x = 1; x < size - 1; x++)
+            for (int z = 1; z < size - 1; z++)
+            {
+                if (wall[x, z]) continue;
+                if (x <= half && z <= half) continue;   // the player's starting quadrant is safe
+
+                int index = (x > half && z > half) ? 2 : (x > half ? 0 : 1);
+                regions[index].Add(new Vector2Int(x, z));
+            }
+
+        regions.RemoveAll(r => r.Count < 2);
+        return regions;
+    }
+
+    void SpawnEnemy(List<Vector2Int> region, int number)
+    {
+        // Pick 4 random patrol points inside the region
+        var points = new Vector3[4];
+        for (int i = 0; i < points.Length; i++)
+        {
+            var cell = region[rnd.Next(region.Count)];
+            points[i] = CellPos(cell.x, cell.y, 1.1f);
+        }
+
+        var enemy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        enemy.name = "Enemy_" + number;
+        enemy.transform.position = points[0];
+        enemy.GetComponent<Renderer>().material = enemyMat;
+
+        var agent = enemy.AddComponent<NavMeshAgent>();
+        agent.acceleration = 14f;
+        agent.angularSpeed = 400f;
+        agent.Warp(points[0]);
+
+        var rb = enemy.AddComponent<Rigidbody>();
+        rb.isKinematic = true;    // the NavMeshAgent drives the movement
+
+        float playerSpeed = 5f;
+        var movement = player.GetComponent<PlayerMovement>();
+        if (movement != null) playerSpeed = movement.speed;
+
+        var patrol = enemy.AddComponent<EnemyPatrol>();
+        patrol.player = player;
+        patrol.patrolPoints = points;
+        patrol.patrolSpeed = 2.5f;                  // calm while patrolling
+        patrol.chaseSpeed = playerSpeed - 0.5f;     // speeds up when it spots you, but stays slower
+
+        enemy.AddComponent<EnemyTouchDamage>();
     }
 
     void PrepareMaterials()
@@ -241,6 +318,10 @@ public class MazeGenerator : MonoBehaviour
         floorMat.SetFloat("_Smoothness", 0.35f);
 
         exitMat = GlowingMaterial(lit, new Color(0.2f, 1f, 0.6f), 3f);
+
+        enemyMat = new Material(lit) { color = new Color(0.55f, 0.05f, 0.08f) };
+        enemyMat.EnableKeyword("_EMISSION");
+        enemyMat.SetColor("_EmissionColor", new Color(0.6f, 0f, 0f) * 1.5f);
     }
 
     // Self-illuminating (emissive) material — glows with the bloom effect
