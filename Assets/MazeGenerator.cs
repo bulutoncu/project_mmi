@@ -44,6 +44,24 @@ public class MazeGenerator : MonoBehaviour
             else player = CreatePlayer();   // no player in the scene, create one
         }
 
+        if (player != null)
+        {
+            // Health: enemies chip it away on contact instead of killing instantly
+            if (player.GetComponent<PlayerHealth>() == null)
+                player.gameObject.AddComponent<PlayerHealth>();
+
+            // "YOU DIED" screen when health runs out
+            if (player.GetComponent<GameOverScreen>() == null)
+                player.gameObject.AddComponent<GameOverScreen>();
+
+            // Health bar UI
+            if (FindFirstObjectByType<HealthBarBuilder>() == null)
+            {
+                var healthBar = gameObject.AddComponent<HealthBarBuilder>();
+                healthBar.playerHealth = player.GetComponent<PlayerHealth>();
+            }
+        }
+
         CarveMaze();
         BuildGeometry();
         BakeNavMesh();          // so enemies can find their way around the maze

@@ -10,6 +10,7 @@
 On Play, everything is built automatically:
 - 🧱 A random maze (different every run!)
 - 👹 Patrolling enemies that chase you on sight (red light = they spotted you)
+- 🩸 A health bar — enemies damage you on contact, at 0 HP you die
 - 💚 A spinning green exit portal in the far corner — touch it to **win**
 - 🎮 A player is created automatically if the scene has none
 - 📷 Camera and post-processing effects
@@ -17,8 +18,8 @@ On Play, everything is built automatically:
 ## How to Play
 
 - **WASD / arrow keys** — move
-- **R** — restart after winning or getting caught (a brand new maze is generated)
-- Reach the green portal without touching an enemy — one touch and you're caught!
+- **R** — restart after winning or dying (a brand new maze is generated)
+- Enemies hurt you while touching you (20 HP per hit) — shake them off before your health runs out!
 - Escaping an enemy's line of sight makes it give up.
 
 ## Inspector Settings (Maze Generator)
@@ -43,5 +44,8 @@ Fog color/density can be tweaked on the `Scene Beautifier` component.
 - `Assets/CameraFollow.cs` — smooth follow camera (FollowBehind mode)
 - `Assets/MazeExit.cs` — exit portal + win screen
 - `Assets/EnemyPatrol.cs` — patrol + line-of-sight chase AI
-- `Assets/enemyTouchDamage.cs` — getting caught + game over screen
+- `Assets/enemyTouchDamage.cs` — contact damage
+- `Assets/playerHealth.cs` — health (damage/heal)
+- `Assets/GameOverScreen.cs` — death screen
+- `Assets/HealthBarBuilder.cs` — health bar UI built from code (`healthbarui.cs` keeps it updated)
 - `Assets/PlayerMovement.cs` — WASD movement
