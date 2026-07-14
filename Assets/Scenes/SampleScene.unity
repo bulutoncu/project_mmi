@@ -133,7 +133,6 @@ GameObject:
   - component: {fileID: 192678066}
   - component: {fileID: 192678070}
   - component: {fileID: 192678072}
-  - component: {fileID: 192678071}
   m_Layer: 0
   m_Name: Plane
   m_TagString: Untagged
@@ -267,19 +266,6 @@ MonoBehaviour:
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: 17c2feaf6bc59b74c88a197ff8e3dbeb, type: 2}
   m_BuildHeightMesh: 0
---- !u!114 &192678071
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 192678065}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 91cc50cb98e8c874bb619d09e349762a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LavaFloor
-  damagePerSecond: 2
 --- !u!65 &192678072
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -628,7 +614,6 @@ GameObject:
   - component: {fileID: 2012109270}
   - component: {fileID: 2012109269}
   - component: {fileID: 2012109274}
-  - component: {fileID: 2012109275}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Player
@@ -769,21 +754,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &2012109275
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2012109268}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36318f79d0b96b34187fa550a2f35e20, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerHealth
-  maxHealth: 100
-  currentHealth: 0
-  isOnFire: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

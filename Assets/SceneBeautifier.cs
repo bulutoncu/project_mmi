@@ -48,7 +48,7 @@ public class SceneBeautifier : MonoBehaviour
         var profile = ScriptableObject.CreateInstance<VolumeProfile>();
 
         var bloom = profile.Add<Bloom>();
-        bloom.intensity.Override(1.3f);      // torches and lava glow brightly
+        bloom.intensity.Override(1.3f);      // the exit portal glows brightly
         bloom.threshold.Override(1f);
 
         var vignette = profile.Add<Vignette>();
